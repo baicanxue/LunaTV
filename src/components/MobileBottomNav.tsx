@@ -61,6 +61,14 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
         },
       ]);
     }
+    setNavItems((prevItems) => [
+      ...prevItems,
+      {
+        icon: Film,
+        label: '18+',
+        href: '/browse',
+      },
+    ]);
   }, []);
 
   const isActive = (href: string) => {

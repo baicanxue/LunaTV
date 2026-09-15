@@ -175,6 +175,17 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
         ];
       });
     }
+    setMenuItems((prevItems) => {
+      if (prevItems.some((item) => item.href === '/browse')) return prevItems;
+      return [
+        ...prevItems,
+        {
+          icon: Film,
+          label: '18+分类',
+          href: '/browse',
+        },
+      ];
+    });
   }, []);
 
   return (
