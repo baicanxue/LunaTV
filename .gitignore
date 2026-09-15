@@ -49,3 +49,10 @@ public/sw.js
 public/sw.js.map
 public/workbox-*.js
 public/workbox-*.js.map
+.env*
+
+# 本机运维产物（不入库）
+.admin_pw.txt
+cfst/
+result.csv
+*.bak
