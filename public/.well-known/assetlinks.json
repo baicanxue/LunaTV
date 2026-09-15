@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "top.baicanxue.tv",
+      "sha256_cert_fingerprints": [
+        "B3:33:2C:7C:4D:A8:8B:93:46:1C:5E:51:C8:C7:B3:D5:E3:FC:AC:B0:58:5D:4F:52:9B:08:C5:D9:95:FF:42:04"
+      ]
+    }
+  }
+]
