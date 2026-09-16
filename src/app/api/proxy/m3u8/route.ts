@@ -111,6 +111,14 @@ function stripPreRollAd(content: string): string {
   if (idx < 0) {
     return content;
   }
+  // 只有「片头段很短（像广告）且后面还有内容」时才剥。
+  // 有些源是正片在前、广告夹在中间，盲剥会把正片前半段扔掉。
+  const headSeconds = [...content.slice(0, idx).matchAll(/#EXTINF:([\d.]+)/g)]
+    .map((m) => parseFloat(m[1]))
+    .reduce((a, b) => a + b, 0);
+  if (headSeconds <= 0 || headSeconds > 90) {
+    return content;
+  }
   const firstLineEnd = content.indexOf('\n');
   const head =
     firstLineEnd >= 0 ? content.slice(0, firstLineEnd + 1) : '#EXTM3U\n';
