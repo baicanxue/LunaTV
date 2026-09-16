@@ -64,7 +64,10 @@ export async function GET(request: Request) {
       headers.set('Access-Control-Allow-Origin', '*');
       headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
       headers.set('Access-Control-Allow-Headers', 'Content-Type, Range, Origin, Accept');
-      headers.set('Cache-Control', 'no-cache');
+      // 点播 m3u8/分片内容稳定，交给 CDN 边缘缓存（免去每次唤醒函数 + 绕海外节点）；
+      // 直播源的播放列表是滚动的，必须不缓存
+      headers.set('Cache-Control',
+        liveSource ? 'no-cache' : 'public, max-age=300, s-maxage=300');
       headers.set('Access-Control-Expose-Headers', 'Content-Length, Content-Range');
       return new Response(modifiedContent, { headers });
     }
@@ -74,7 +77,8 @@ export async function GET(request: Request) {
     headers.set('Access-Control-Allow-Origin', '*');
     headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     headers.set('Access-Control-Allow-Headers', 'Content-Type, Range, Origin, Accept');
-    headers.set('Cache-Control', 'no-cache');
+    headers.set('Cache-Control',
+      liveSource ? 'no-cache' : 'public, max-age=300, s-maxage=300');
     headers.set('Access-Control-Expose-Headers', 'Content-Length, Content-Range');
 
     // 直接返回视频流
