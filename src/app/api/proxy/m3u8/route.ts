@@ -17,11 +17,11 @@ export async function GET(request: Request) {
   }
 
   const config = await getConfig();
-  const liveSource = config.LiveConfig?.find((s: any) => s.key === source);
-  if (!liveSource) {
-    return NextResponse.json({ error: 'Source not found' }, { status: 404 });
-  }
-  const ua = liveSource.ua || 'AptvPlayer/1.4.10';
+  const liveSource = source
+    ? config.LiveConfig?.find((s: any) => s.key === source)
+    : undefined;
+  // 直播源会带 moontv-source；点播（影视）不带，用通用 UA 即可
+  const ua = liveSource?.ua || 'AptvPlayer/1.4.10';
 
   let response: Response | null = null;
   let responseUsed = false;
@@ -52,8 +52,12 @@ export async function GET(request: Request) {
       // 使用最终的响应URL作为baseUrl，而不是原始的请求URL
       const baseUrl = getBaseUrl(finalUrl);
 
+      // 剥掉片头广告段（广告与正片之间用 #EXT-X-DISCONTINUITY 分隔，
+      // 播放器切到正片时密钥方式变化容易断，表现为广告播完就从头重播、正片出不来）
+      const strippedContent = stripPreRollAd(m3u8Content);
+
       // 重写 M3U8 内容
-      const modifiedContent = rewriteM3U8Content(m3u8Content, baseUrl, allowCORS);
+      const modifiedContent = rewriteM3U8Content(strippedContent, baseUrl, allowCORS);
 
       const headers = new Headers();
       headers.set('Content-Type', contentType);
@@ -91,6 +95,34 @@ export async function GET(request: Request) {
       }
     }
   }
+}
+
+/**
+ * 去掉 HLS 片头广告段。
+ *
+ * 部分采集源把「广告段（不加密）+ #EXT-X-DISCONTINUITY + 正片（AES-128 加密）」
+ * 拼在同一个 media playlist 里。播放器切到正片时要换密钥，容易在这里失败，
+ * 于是认为视频提前结束，表现为「广告播完就从头重播、正片出不来」。
+ * 这里把 DISCONTINUITY 之前的内容整段丢弃，只保留正片。
+ */
+function stripPreRollAd(content: string): string {
+  const marker = '#EXT-X-DISCONTINUITY';
+  const idx = content.indexOf(marker);
+  if (idx < 0) {
+    return content;
+  }
+  const firstLineEnd = content.indexOf('\n');
+  const head =
+    firstLineEnd >= 0 ? content.slice(0, firstLineEnd + 1) : '#EXTM3U\n';
+  const targetDuration =
+    content.match(/#EXT-X-TARGETDURATION:(\d+)/)?.[1] ?? '6';
+  const tail = content.slice(idx + marker.length);
+  return (
+    head +
+    `#EXT-X-VERSION:3\n#EXT-X-TARGETDURATION:${targetDuration}\n` +
+    `#EXT-X-PLAYLIST-TYPE:VOD\n#EXT-X-MEDIA-SEQUENCE:0` +
+    tail
+  );
 }
 
 function rewriteM3U8Content(content: string, baseUrl: string, allowCORS: boolean) {
