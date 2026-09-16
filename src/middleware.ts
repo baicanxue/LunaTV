@@ -127,6 +127,8 @@ function shouldSkipAuth(pathname: string): boolean {
     '/screenshot.png',
     '/.well-known/',
     '/api/bgm/',
+    // 播放器（mpv/ffmpeg）拉 m3u8/分片/密钥时不会带 cookie，必须放行
+    '/api/proxy/',
   ];
 
   return skipPaths.some((path) => pathname.startsWith(path));
