@@ -15,11 +15,11 @@ export async function GET(request: Request) {
   }
 
   const config = await getConfig();
-  const liveSource = config.LiveConfig?.find((s: any) => s.key === source);
-  if (!liveSource) {
-    return NextResponse.json({ error: 'Source not found' }, { status: 404 });
-  }
-  const ua = liveSource.ua || 'AptvPlayer/1.4.10';
+  const liveSource = source
+    ? config.LiveConfig?.find((s: any) => s.key === source)
+    : undefined;
+  // 直播源会带 moontv-source；点播（影视）不带，用通用 UA 即可
+  const ua = liveSource?.ua || 'AptvPlayer/1.4.10';
 
   let response: Response | null = null;
   let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;

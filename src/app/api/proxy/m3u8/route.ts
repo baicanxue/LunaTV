@@ -163,7 +163,9 @@ function rewriteM3U8Content(content: string, baseUrl: string, allowCORS: boolean
         const nextLine = lines[i].trim();
         if (nextLine && !nextLine.startsWith('#')) {
           const resolvedUrl = resolveUrl(baseUrl, nextLine);
-          const proxyUrl = `${proxyBase}/m3u8?url=${encodeURIComponent(resolvedUrl)}`;
+          const proxyUrl = `${proxyBase}/m3u8?url=${encodeURIComponent(resolvedUrl)}${
+            allowCORS ? '&allowCORS=true' : ''
+          }`;
           rewrittenLines.push(proxyUrl);
         } else {
           rewrittenLines.push(nextLine);
